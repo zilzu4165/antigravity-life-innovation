@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id // Kakao ID (as string)
+  nickname     String
+  profileImage String?
+  createdAt    DateTime @default(now())
+  goals        Goal[]
+  history      GoalHistory[]
+  comments     Comment[]
+}
+
+model Goal {
+  id        Int      @id @default(autoincrement())
+  text      String
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model GoalHistory {
+  id        Int      @id @default(autoincrement())
+  date      String   // YYYY-MM-DD
+  progress  Int
+  goals     String   // JSON string of goals for that day
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}
+
+model Comment {
+  id         Int      @id @default(autoincrement())
+  text       String
+  type       String   // 'cheer' | 'scold'
+  createdAt  DateTime @default(now())
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id])
+}

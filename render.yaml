@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: antigravity-backend
+    runtime: node
+    buildCommand: cd server && npm install && npx prisma generate
+    startCommand: cd server && npx prisma migrate deploy && npm start
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: NODE_ENV
+        value: production

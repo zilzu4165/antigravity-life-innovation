@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인생개조프로젝트 | Life Renovation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="glass-header">
+            <div class="logo">
+                <i class="fa-solid fa-bolt"></i>
+                <h1>Life Renovation</h1>
+            </div>
+            <div class="user-profile">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" class="avatar">
+                <span>나의 하루</span>
+            </div>
+        </header>
+
+        <main>
+            <!-- Dashboard Section -->
+            <section class="dashboard glass-panel">
+                <h2><i class="fa-solid fa-chart-pie"></i> 오늘의 달성률</h2>
+                <div class="stats-container">
+                    <div class="stat-card my-stat">
+                        <div class="progress-circle" id="my-progress" style="--percent: 0">
+                            <span class="percent-text">0%</span>
+                        </div>
+                        <h3>나 (ME)</h3>
+                    </div>
+                    <div class="vs-badge">VS</div>
+                    <div class="stat-card opponent-stat">
+                        <div class="progress-circle opponent" id="opponent-progress" style="--percent: 65">
+                            <span class="percent-text">65%</span>
+                        </div>
+                        <h3>상대방 (RIVAL)</h3>
+                    </div>
+                </div>
+                <p class="motivation-text" id="motivation-msg">아직 시작도 안 했다고? 🔥</p>
+            </section>
+
+            <!-- Goal List Section -->
+            <section class="goal-section glass-panel">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-list-check"></i> 오늘의 목표</h2>
+                    <button id="add-goal-btn" class="neon-btn"><i class="fa-solid fa-plus"></i> 목표 추가</button>
+                </div>
+                
+                <div class="input-group hidden" id="goal-input-area">
+                    <input type="text" id="new-goal-input" placeholder="예: 러닝 3km, 독서 10페이지...">
+                    <button id="save-goal-btn"><i class="fa-solid fa-check"></i></button>
+                </div>
+
+                <ul id="goal-list" class="goal-list">
+                    <!-- Goals will be injected here via JS -->
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
