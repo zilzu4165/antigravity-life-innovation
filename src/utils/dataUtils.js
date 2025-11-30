@@ -89,6 +89,8 @@ export const generateMockGoals = () => {
 };
 
 export const getLastMonthChampion = (members) => {
+    if (!members || members.length === 0) return null;
+
     const today = new Date();
     const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
     const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
@@ -119,6 +121,8 @@ export const getLastMonthChampion = (members) => {
 };
 
 export const getLastMonthPenaltyLeader = (members) => {
+    if (!members || members.length === 0) return null;
+
     const today = new Date();
     const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
     const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
