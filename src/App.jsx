@@ -32,7 +32,14 @@ function App() {
   // User State
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('kakao_user');
-    return savedUser ? JSON.parse(savedUser) : null;
+    if (savedUser) {
+      const parsed = JSON.parse(savedUser);
+      if (parsed.profile_image) {
+        parsed.profile_image = parsed.profile_image.replace('http:', 'https:');
+      }
+      return parsed;
+    }
+    return null;
   });
   const [accessToken, setAccessToken] = useState(() => localStorage.getItem('kakao_token'));
 
@@ -67,7 +74,7 @@ function App() {
           const userData = {
             id: rawUserData.id,
             nickname: rawUserData.kakao_account?.profile?.nickname || rawUserData.properties?.nickname || '카카오 사용자',
-            profile_image: rawUserData.kakao_account?.profile?.profile_image_url || rawUserData.properties?.profile_image || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Kakao'
+            profile_image: (rawUserData.kakao_account?.profile?.profile_image_url || rawUserData.properties?.profile_image || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Kakao').replace('http:', 'https:')
           };
 
           // 3. Sync with Backend
@@ -128,7 +135,11 @@ function App() {
       // Load Leaderboard (Global)
       try {
         const leaderboard = await api.getLeaderboard();
-        setGroupMembers(leaderboard);
+        const sanitizedLeaderboard = leaderboard.map(member => ({
+          ...member,
+          avatar: member.avatar ? member.avatar.replace('http:', 'https:') : member.avatar
+        }));
+        setGroupMembers(sanitizedLeaderboard);
       } catch (error) {
         console.error('Failed to load leaderboard', error);
       }
@@ -139,7 +150,11 @@ function App() {
     const interval = setInterval(async () => {
       try {
         const leaderboard = await api.getLeaderboard();
-        setGroupMembers(leaderboard);
+        const sanitizedLeaderboard = leaderboard.map(member => ({
+          ...member,
+          avatar: member.avatar ? member.avatar.replace('http:', 'https:') : member.avatar
+        }));
+        setGroupMembers(sanitizedLeaderboard);
       } catch (error) {
         console.error('Failed to update leaderboard', error);
       }

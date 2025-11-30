@@ -32,30 +32,13 @@ app.post('/api/auth/login', async (req, res) => {
     try {
         const user = await prisma.user.upsert({
             where: { id: String(id) },
-            update: { nickname, profileImage },
-            create: { id: String(id), nickname, profileImage },
+            update: { nickname, profileImage: profileImage?.replace('http:', 'https:') },
+            create: { id: String(id), nickname, profileImage: profileImage?.replace('http:', 'https:') },
         });
         res.json(user);
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ error: 'Failed to login' });
-    }
-});
-
-// Get User Info
-app.get('/api/users/:id', async (req, res) => {
-    try {
-        const user = await prisma.user.findUnique({
-            where: { id: req.params.id },
-            include: {
-                stats: true // Wait, stats are calculated on frontend currently. We might need to move that logic or just store history.
-                // Schema has 'history' relation.
-            }
-        });
-        if (!user) return res.status(404).json({ error: 'User not found' });
-        res.json(user);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch user' });
     }
 });
 
@@ -86,7 +69,7 @@ app.get('/api/users/leaderboard/all', async (req, res) => {
                 id: `user_${user.id}`, // Format to match frontend expectation
                 dbId: user.id,
                 name: user.nickname,
-                avatar: user.profileImage || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.nickname,
+                avatar: (user.profileImage || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.nickname).replace('http:', 'https:'),
                 progress: progress,
                 history: user.history.reduce((acc, curr) => {
                     acc[curr.date] = JSON.parse(curr.goals);
@@ -105,6 +88,27 @@ app.get('/api/users/leaderboard/all', async (req, res) => {
     } catch (error) {
         console.error('Leaderboard error:', error);
         res.status(500).json({ error: 'Failed to fetch leaderboard' });
+    }
+});
+
+// Get User Info
+app.get('/api/users/:id', async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: req.params.id },
+            include: {
+                stats: true // Wait, stats are calculated on frontend currently. We might need to move that logic or just store history.
+                // Schema has 'history' relation.
+            }
+        });
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        // Force HTTPS for profile image
+        if (user.profileImage) {
+            user.profileImage = user.profileImage.replace('http:', 'https:');
+        }
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch user' });
     }
 });
 

@@ -6,7 +6,7 @@ export default function KakaoLogin({ user, onLogin, onLogout }) {
         <div className="kakao-login-wrapper">
             {user ? (
                 <div className="user-profile-badge">
-                    <img src={user.profile_image} alt={user.nickname} className="profile-avatar" />
+                    <img src={user.profile_image?.replace('http:', 'https:')} alt={user.nickname} className="profile-avatar" />
                     <span className="profile-name">{user.nickname}</span>
                     <button onClick={onLogout} className="logout-btn" title="로그아웃">
                         <LogOut size={16} />

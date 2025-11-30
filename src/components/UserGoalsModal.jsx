@@ -28,7 +28,7 @@ export default function UserGoalsModal({ isOpen, onClose, user, goals }) {
                     <div className="user-goals-content">
                         {user && (
                             <div className="user-info-header">
-                                <img src={user.avatar} alt={user.name} className="user-avatar-large" />
+                                <img src={user.avatar?.replace('http:', 'https:')} alt={user.name} className="user-avatar-large" />
                                 <div>
                                     <h4>{user.name}</h4>
                                     <p className="progress-text">진행률: {user.progress}%</p>
