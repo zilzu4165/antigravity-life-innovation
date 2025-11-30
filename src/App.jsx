@@ -321,7 +321,7 @@ function App() {
     return Math.round((completed / goals.length) * 100);
   };
 
-  const currentUser = groupMembers.find(m => m.id === 'me');
+  const currentUser = groupMembers.find(m => m.id === 'me' || m.id === `user_${dbUserId}`) || { progress: 0 };
 
   return (
     <div className="app-container">
@@ -337,7 +337,7 @@ function App() {
 
       <main>
         <Dashboard
-          myProgress={currentUser.progress}
+          myProgress={currentUser.progress || 0}
           groupMembers={userId === GUEST_ID ? groupMembers.filter(m => m.id !== 'me') : groupMembers}
           currentUserId={userId === GUEST_ID ? null : 'me'}
           currentUserGoals={goals}
