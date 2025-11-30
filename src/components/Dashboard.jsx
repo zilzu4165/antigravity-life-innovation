@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { PieChart } from 'lucide-react';
+import { PieChart, Trophy } from 'lucide-react';
 import Leaderboard from './Leaderboard';
+import { getLastMonthChampion } from '../utils/dataUtils';
 
 export default function Dashboard({ myProgress, groupMembers, currentUserId, currentUserGoals }) {
     const getMotivationMessage = (percent) => {
@@ -12,9 +13,28 @@ export default function Dashboard({ myProgress, groupMembers, currentUserId, cur
         return "아직 시작도 안 했다고? 움직여! ⚡️";
     };
 
+    const lastMonthChampion = getLastMonthChampion(groupMembers);
+    const lastMonthName = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1)
+        .toLocaleDateString('ko-KR', { month: 'long' });
+
     return (
         <section className="dashboard glass-panel">
             <h2><PieChart size={18} /> 오늘의 달성률</h2>
+
+            {lastMonthChampion && (
+                <motion.div
+                    className="champion-badge"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                >
+                    <Trophy size={16} className="champion-icon" />
+                    <span className="champion-text">
+                        {lastMonthName} 챔피언: <strong>{lastMonthChampion.name}</strong>
+                        <span className="champion-avg"> (평균 {lastMonthChampion.lastMonthAvg}%)</span>
+                    </span>
+                </motion.div>
+            )}
 
             <div className="my-summary">
                 <div className="progress-circle" style={{ '--percent': myProgress, margin: '0 auto' }}>

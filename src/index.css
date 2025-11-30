@@ -895,3 +895,36 @@ body {
   margin-top: 12px;
   font-size: 0.9rem;
 }
+
+/* Champion Badge */
+.champion-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(255, 193, 7, 0.05));
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  padding: 10px 14px;
+  border-radius: 12px;
+  margin: 16px 0;
+}
+
+.champion-icon {
+  color: gold;
+  flex-shrink: 0;
+}
+
+.champion-text {
+  font-size: 0.85rem;
+  color: var(--text-main);
+  line-height: 1.4;
+}
+
+.champion-text strong {
+  color: gold;
+  font-weight: 700;
+}
+
+.champion-avg {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
