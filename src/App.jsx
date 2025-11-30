@@ -321,7 +321,11 @@ function App() {
     return Math.round((completed / goals.length) * 100);
   };
 
-  const currentUser = groupMembers.find(m => m.id === 'me' || m.id === `user_${dbUserId}`) || { progress: 0 };
+  const currentUser = groupMembers.find(m => m.id === 'me' || m.id === `user_${dbUserId}`) || {
+    progress: 0,
+    stats: { weekly: 0, monthly: 0, yearly: 0, penalty: 0 },
+    history: {}
+  };
 
   return (
     <div className="app-container">
