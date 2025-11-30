@@ -2,9 +2,14 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Trophy, Medal, Crown } from 'lucide-react';
 import { getPeriodRank, calculatePenalty } from '../utils/dataUtils';
+import UserGoalsModal from './UserGoalsModal';
+import { api } from '../utils/api';
 
 export default function Leaderboard({ members, currentUserId }) {
     const [period, setPeriod] = useState('daily'); // daily, weekly, monthly, yearly
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [userGoals, setUserGoals] = useState([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Sort members based on selected period
     const sortedMembers = getPeriodRank(members, period);
@@ -20,6 +25,45 @@ export default function Leaderboard({ members, currentUserId }) {
         if (period === 'daily') return member.progress;
         if (period === 'penalty') return calculatePenalty(member.history);
         return member.stats[period];
+    };
+
+    const handleUserClick = async (member) => {
+        // Don't fetch for mock users (user1, user2, user3)
+        if (member.id.startsWith('user') || member.id === 'me') {
+            // For mock users, use today's goals from history
+            const today = new Date().toISOString().split('T')[0];
+            const todayGoals = member.history?.[today] || [];
+
+            // Convert progress number to goals array format
+            if (typeof todayGoals === 'number') {
+                setUserGoals([]);
+            } else {
+                setUserGoals(todayGoals);
+            }
+
+            setSelectedUser(member);
+            setIsModalOpen(true);
+            return;
+        }
+
+        // For real users, fetch from API
+        try {
+            const goals = await api.getUserGoals(member.id);
+            setUserGoals(goals);
+            setSelectedUser(member);
+            setIsModalOpen(true);
+        } catch (error) {
+            console.error('Failed to fetch user goals:', error);
+            setUserGoals([]);
+            setSelectedUser(member);
+            setIsModalOpen(true);
+        }
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedUser(null);
+        setUserGoals([]);
     };
 
     return (
@@ -58,6 +102,8 @@ export default function Leaderboard({ members, currentUserId }) {
                             transition={{ delay: index * 0.1 }}
                             className={`leaderboard-item ${isCurrentUser ? 'current-user' : ''} rank-${index + 1}`}
                             layout
+                            onClick={() => handleUserClick(member)}
+                            style={{ cursor: 'pointer' }}
                         >
                             <div className="rank-badge">
                                 {getRankIcon(index)}
@@ -95,6 +141,13 @@ export default function Leaderboard({ members, currentUserId }) {
                     );
                 })}
             </ul>
+
+            <UserGoalsModal
+                isOpen={isModalOpen}
+                onClose={closeModal}
+                user={selectedUser}
+                goals={userGoals}
+            />
         </div>
     );
 }

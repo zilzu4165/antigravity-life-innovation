@@ -51,6 +51,12 @@ export const api = {
         return response.json();
     },
 
+    getUserGoals: async (userId) => {
+        const response = await fetch(`${API_BASE}/goals?userId=${userId}`);
+        if (!response.ok) throw new Error('Get user goals failed');
+        return response.json();
+    },
+
     // History
     getHistory: async (userId) => {
         const response = await fetch(`${API_BASE}/history?userId=${userId}`);
