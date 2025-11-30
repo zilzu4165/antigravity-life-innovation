@@ -210,7 +210,7 @@ function App() {
         }
       }
     });
-  }, [goals, user, userId, dbUserId, goalHistory]);
+  }, [goals, user, userId, dbUserId]);
 
   // Auth Handlers
   const handleLogin = () => {
