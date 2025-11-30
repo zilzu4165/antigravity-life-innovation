@@ -13,7 +13,7 @@ import { getKakaoAuthUrl, getKakaoToken, getKakaoUserInfo, logoutKakao } from '.
 import { api } from './utils/api';
 
 const GUEST_ID = 'guest';
-const GUEST_ID = 'guest';
+
 
 function App() {
   // User State
