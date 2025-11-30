@@ -90,13 +90,19 @@ function App() {
   const [goalHistory, setGoalHistory] = useState({});
   const [comments, setComments] = useState([]);
 
+  // Group Members
+  const [groupMembers, setGroupMembers] = useState([]);
+
   // Load Data when userId changes
   useEffect(() => {
     const loadData = async () => {
       if (userId === GUEST_ID) {
-        // Guest Mode: Reset to empty
-        setGoals([]);
-        setGoalHistory({});
+        // Guest Mode: Use LocalStorage or Mock
+        const savedGoals = localStorage.getItem(`goals_${userId}`);
+        setGoals(savedGoals ? JSON.parse(savedGoals) : []);
+
+        const savedHistory = localStorage.getItem(`goalHistory_${userId}`);
+        setGoalHistory(savedHistory ? JSON.parse(savedHistory) : {});
       } else {
         // User Mode: Fetch from API
         try {
@@ -118,30 +124,34 @@ function App() {
       } catch (error) {
         console.error('Failed to load comments', error);
       }
+
+      // Load Leaderboard (Global)
+      try {
+        const leaderboard = await api.getLeaderboard();
+        setGroupMembers(leaderboard);
+      } catch (error) {
+        console.error('Failed to load leaderboard', error);
+      }
     };
     loadData();
+
+    // Poll for leaderboard updates every 30 seconds
+    const interval = setInterval(async () => {
+      try {
+        const leaderboard = await api.getLeaderboard();
+        setGroupMembers(leaderboard);
+      } catch (error) {
+        console.error('Failed to update leaderboard', error);
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [userId, dbUserId]);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedGoals, setSelectedGoals] = useState([]);
-
-  // Group Members (only current user)
-  const [groupMembers, setGroupMembers] = useState(() => {
-    return [
-      {
-        id: 'me',
-        name: '나의 하루',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Liliana',
-        progress: 0,
-        history: {},
-        stats: { weekly: 0, monthly: 0, yearly: 0, penalty: 0 }
-      }
-    ];
-  });
-
-
 
   // Update "My" progress and stats whenever goals change
   useEffect(() => {
@@ -160,184 +170,172 @@ function App() {
       api.saveHistory(dbUserId, todayStr, goals, myProgress).catch(err => console.error('Failed to save history', err));
     }
 
-    setGroupMembers(prev => prev.map(member => {
-      if (member.id === 'me') {
-        const newHistory = { ...member.history, [todayStr]: myProgress };
-        const newStats = calculateStats(newHistory);
-        return {
-          ...member,
-          name: user ? user.nickname : '나의 하루',
-          avatar: user ? user.profile_image : 'https://api.dicebear.com/7.x/avataaars/svg?seed=Liliana',
-          progress: myProgress,
-          history: newHistory,
-          stats: { ...newStats, penalty: calculatePenalty(newHistory) }
-        };
-      }
+  }
       return member;
-    }));
+}));
   }, [goals, user, userId, dbUserId]);
 
-  // Auth Handlers
-  const handleLogin = () => {
-    window.location.href = getKakaoAuthUrl();
-  };
+// Auth Handlers
+const handleLogin = () => {
+  window.location.href = getKakaoAuthUrl();
+};
 
-  const handleLogout = async () => {
-    await logoutKakao(accessToken);
-    setUser(null);
-    setAccessToken(null);
-    localStorage.removeItem('kakao_user');
-    localStorage.removeItem('kakao_token');
-  };
+const handleLogout = async () => {
+  await logoutKakao(accessToken);
+  setUser(null);
+  setAccessToken(null);
+  localStorage.removeItem('kakao_user');
+  localStorage.removeItem('kakao_token');
+};
 
-  // Goal Handlers
-  const addGoal = async (text) => {
-    if (userId !== GUEST_ID) {
-      try {
-        const newGoal = await api.addGoal(dbUserId, text);
-        setGoals([...goals, newGoal]);
-      } catch (error) {
-        console.error('Failed to add goal', error);
-        alert('목표 추가 실패');
-      }
-    } else {
-      const newGoal = {
-        id: Date.now(),
-        text,
-        completed: false,
-        createdAt: new Date().toISOString().split('T')[0]
-      };
+// Goal Handlers
+const addGoal = async (text) => {
+  if (userId !== GUEST_ID) {
+    try {
+      const newGoal = await api.addGoal(dbUserId, text);
       setGoals([...goals, newGoal]);
+    } catch (error) {
+      console.error('Failed to add goal', error);
+      alert('목표 추가 실패');
     }
-  };
+  } else {
+    const newGoal = {
+      id: Date.now(),
+      text,
+      completed: false,
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    setGoals([...goals, newGoal]);
+  }
+};
 
-  const toggleGoal = async (id) => {
-    if (userId !== GUEST_ID) {
-      try {
-        const updatedGoal = await api.toggleGoal(id);
-        setGoals(goals.map(goal => goal.id === id ? updatedGoal : goal));
-      } catch (error) {
-        console.error('Failed to toggle goal', error);
-      }
-    } else {
-      setGoals(goals.map(goal =>
-        goal.id === id ? { ...goal, completed: !goal.completed } : goal
-      ));
+const toggleGoal = async (id) => {
+  if (userId !== GUEST_ID) {
+    try {
+      const updatedGoal = await api.toggleGoal(id);
+      setGoals(goals.map(goal => goal.id === id ? updatedGoal : goal));
+    } catch (error) {
+      console.error('Failed to toggle goal', error);
     }
-  };
+  } else {
+    setGoals(goals.map(goal =>
+      goal.id === id ? { ...goal, completed: !goal.completed } : goal
+    ));
+  }
+};
 
-  const deleteGoal = async (id) => {
-    if (userId !== GUEST_ID) {
-      try {
-        await api.deleteGoal(id);
-        setGoals(goals.filter(goal => goal.id !== id));
-      } catch (error) {
-        console.error('Failed to delete goal', error);
-      }
-    } else {
+const deleteGoal = async (id) => {
+  if (userId !== GUEST_ID) {
+    try {
+      await api.deleteGoal(id);
       setGoals(goals.filter(goal => goal.id !== id));
+    } catch (error) {
+      console.error('Failed to delete goal', error);
     }
-  };
+  } else {
+    setGoals(goals.filter(goal => goal.id !== id));
+  }
+};
 
-  // Comment Handler
-  const addComment = async (text, type) => {
-    if (userId !== GUEST_ID) {
-      try {
-        const newComment = await api.addComment(dbUserId, text, type);
-        setComments([newComment, ...comments]);
-      } catch (error) {
-        console.error('Failed to add comment', error);
-        alert('방명록 작성 실패');
-      }
-    } else {
-      // Guest comment (Local only or allow anonymous?)
-      // For now, let's say guests can't comment or just local
-      const newComment = {
-        id: Date.now(),
-        authorId: userId,
-        authorName: user ? user.nickname : '익명',
-        text,
-        type,
-        timestamp: format(new Date(), 'yyyy-MM-dd')
-      };
+// Comment Handler
+const addComment = async (text, type) => {
+  if (userId !== GUEST_ID) {
+    try {
+      const newComment = await api.addComment(dbUserId, text, type);
       setComments([newComment, ...comments]);
-      // Note: Guest comments won't be persisted to DB in this implementation
+    } catch (error) {
+      console.error('Failed to add comment', error);
+      alert('방명록 작성 실패');
     }
-  };
+  } else {
+    // Guest comment (Local only or allow anonymous?)
+    // For now, let's say guests can't comment or just local
+    const newComment = {
+      id: Date.now(),
+      authorId: userId,
+      authorName: user ? user.nickname : '익명',
+      text,
+      type,
+      timestamp: format(new Date(), 'yyyy-MM-dd')
+    };
+    setComments([newComment, ...comments]);
+    // Note: Guest comments won't be persisted to DB in this implementation
+  }
+};
 
-  // Date Click Handler
-  const handleDateClick = (dateStr) => {
-    setSelectedDate(dateStr);
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-    if (dateStr === todayStr) {
-      setSelectedGoals(goals);
-    } else if (goalHistory[dateStr]) {
-      setSelectedGoals(goalHistory[dateStr]);
-    } else {
-      setSelectedGoals(generateMockGoals());
-    }
-    setIsModalOpen(true);
-  };
+// Date Click Handler
+const handleDateClick = (dateStr) => {
+  setSelectedDate(dateStr);
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  if (dateStr === todayStr) {
+    setSelectedGoals(goals);
+  } else if (goalHistory[dateStr]) {
+    setSelectedGoals(goalHistory[dateStr]);
+  } else {
+    setSelectedGoals(generateMockGoals());
+  }
+  setIsModalOpen(true);
+};
 
-  // Calculate Progress
-  const calculateProgress = () => {
-    if (goals.length === 0) return 0;
-    const completed = goals.filter(g => g.completed).length;
-    return Math.round((completed / goals.length) * 100);
-  };
+// Calculate Progress
+const calculateProgress = () => {
+  if (goals.length === 0) return 0;
+  const completed = goals.filter(g => g.completed).length;
+  return Math.round((completed / goals.length) * 100);
+};
 
-  const currentUser = groupMembers.find(m => m.id === 'me');
+const currentUser = groupMembers.find(m => m.id === 'me');
 
-  return (
-    <div className="app-container">
-      <header className="glass-header">
-        <div className="logo">
-          <Bolt size={24} />
-          <h1>인생개조프로젝트</h1>
-        </div>
-        <div className="header-right" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-          <KakaoLogin user={user} onLogin={handleLogin} onLogout={handleLogout} />
-        </div>
-      </header>
+return (
+  <div className="app-container">
+    <header className="glass-header">
+      <div className="logo">
+        <Bolt size={24} />
+        <h1>인생개조프로젝트</h1>
+      </div>
+      <div className="header-right" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+        <KakaoLogin user={user} onLogin={handleLogin} onLogout={handleLogout} />
+      </div>
+    </header>
 
-      <main>
-        <Dashboard
-          myProgress={currentUser.progress}
-          groupMembers={userId === GUEST_ID ? groupMembers.filter(m => m.id !== 'me') : groupMembers}
-          currentUserId={userId === GUEST_ID ? null : 'me'}
-          currentUserGoals={goals}
-        />
-
-        <StatsSummary stats={currentUser.stats} />
-        <CalendarView
-          history={currentUser.history}
-          onDateClick={handleDateClick}
-        />
-
-        <GoalList
-          goals={goals}
-          onAdd={addGoal}
-          onToggle={toggleGoal}
-          onDelete={deleteGoal}
-          isReadOnly={userId === GUEST_ID}
-        />
-
-        <Guestbook
-          comments={comments}
-          onAddComment={addComment}
-          currentUserId={userId}
-          isReadOnly={userId === GUEST_ID}
-        />
-      </main>
-
-      <GoalHistoryModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        date={selectedDate}
-        goals={selectedGoals}
+    <main>
+      <Dashboard
+        myProgress={currentUser.progress}
+        groupMembers={userId === GUEST_ID ? groupMembers.filter(m => m.id !== 'me') : groupMembers}
+        currentUserId={userId === GUEST_ID ? null : 'me'}
+        currentUserGoals={goals}
       />
-    </div>
-  );
+
+      <StatsSummary stats={currentUser.stats} />
+      <CalendarView
+        history={currentUser.history}
+        onDateClick={handleDateClick}
+      />
+
+      <GoalList
+        goals={goals}
+        onAdd={addGoal}
+        onToggle={toggleGoal}
+        onDelete={deleteGoal}
+        isReadOnly={userId === GUEST_ID}
+      />
+
+      <Guestbook
+        comments={comments}
+        onAddComment={addComment}
+        currentUserId={userId}
+        isReadOnly={userId === GUEST_ID}
+      />
+    </main>
+
+    <GoalHistoryModal
+      isOpen={isModalOpen}
+      onClose={() => setIsModalOpen(false)}
+      date={selectedDate}
+      goals={selectedGoals}
+    />
+  </div>
+);
 }
 
 export default App;

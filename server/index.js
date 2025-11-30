@@ -59,6 +59,55 @@ app.get('/api/users/:id', async (req, res) => {
     }
 });
 
+// Get Leaderboard (All Users with Today's Progress)
+app.get('/api/users/leaderboard/all', async (req, res) => {
+    try {
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        // Fetch all users with their history for today
+        const users = await prisma.user.findMany({
+            include: {
+                history: true
+            }
+        });
+
+        const leaderboard = users.map(user => {
+            // Find today's history
+            const todayHistory = user.history.find(h => h.date === todayStr);
+            const progress = todayHistory ? todayHistory.progress : 0;
+
+            // Calculate stats (simple version for now)
+            // Weekly: Average of last 7 days
+            // Monthly: Average of last 30 days
+            // Penalty: Count of 0% days in last month
+
+            // For now, let's just return basic info and progress to get it working
+            return {
+                id: `user_${user.id}`, // Format to match frontend expectation
+                dbId: user.id,
+                name: user.nickname,
+                avatar: user.profileImage || 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + user.nickname,
+                progress: progress,
+                history: user.history.reduce((acc, curr) => {
+                    acc[curr.date] = JSON.parse(curr.goals);
+                    return acc;
+                }, {}),
+                stats: {
+                    weekly: 0, // Todo: Implement calculation
+                    monthly: 0,
+                    yearly: 0,
+                    penalty: 0
+                }
+            };
+        });
+
+        res.json(leaderboard);
+    } catch (error) {
+        console.error('Leaderboard error:', error);
+        res.status(500).json({ error: 'Failed to fetch leaderboard' });
+    }
+});
+
 // --- Goal Routes ---
 
 // Get Goals for User

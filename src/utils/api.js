@@ -81,6 +81,12 @@ export const api = {
         return response.json();
     },
 
+    getLeaderboard: async () => {
+        const response = await fetch(`${API_BASE}/users/leaderboard/all`);
+        if (!response.ok) throw new Error('Failed to fetch leaderboard');
+        return response.json();
+    },
+
     addComment: async (authorId, text, type) => {
         const response = await fetch(`${API_BASE}/comments`, {
             method: 'POST',
