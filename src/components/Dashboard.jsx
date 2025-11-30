@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { PieChart, Trophy } from 'lucide-react';
+import { PieChart, Trophy, Skull } from 'lucide-react';
 import Leaderboard from './Leaderboard';
-import { getLastMonthChampion } from '../utils/dataUtils';
+import { getLastMonthChampion, getLastMonthPenaltyLeader } from '../utils/dataUtils';
 
 export default function Dashboard({ myProgress, groupMembers, currentUserId, currentUserGoals }) {
     const getMotivationMessage = (percent) => {
@@ -14,6 +14,7 @@ export default function Dashboard({ myProgress, groupMembers, currentUserId, cur
     };
 
     const lastMonthChampion = getLastMonthChampion(groupMembers);
+    const lastMonthPenaltyLeader = getLastMonthPenaltyLeader(groupMembers);
     const lastMonthName = new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1)
         .toLocaleDateString('ko-KR', { month: 'long' });
 
@@ -32,6 +33,21 @@ export default function Dashboard({ myProgress, groupMembers, currentUserId, cur
                     <span className="champion-text">
                         {lastMonthName} 챔피언: <strong>{lastMonthChampion.name}</strong>
                         <span className="champion-avg"> (평균 {lastMonthChampion.lastMonthAvg}%)</span>
+                    </span>
+                </motion.div>
+            )}
+
+            {lastMonthPenaltyLeader && (
+                <motion.div
+                    className="penalty-badge"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                >
+                    <Skull size={16} className="penalty-icon" />
+                    <span className="penalty-text">
+                        {lastMonthName} 벌금왕: <strong>{lastMonthPenaltyLeader.name}</strong>
+                        <span className="penalty-amount"> ({lastMonthPenaltyLeader.lastMonthPenalty.toLocaleString()}원)</span>
                     </span>
                 </motion.div>
             )}

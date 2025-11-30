@@ -117,3 +117,33 @@ export const getLastMonthChampion = (members) => {
 
     return champion.lastMonthAvg > 0 ? champion : null;
 };
+
+export const getLastMonthPenaltyLeader = (members) => {
+    const today = new Date();
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0);
+
+    // Calculate each member's penalty (zero days) for last month
+    const membersWithPenalty = members.map(member => {
+        const lastMonthDates = Object.keys(member.history).filter(dateStr => {
+            const date = new Date(dateStr);
+            return date >= lastMonth && date <= lastMonthEnd;
+        });
+
+        if (lastMonthDates.length === 0) {
+            return { ...member, lastMonthPenalty: 0 };
+        }
+
+        const zeroDays = lastMonthDates.filter(dateStr => member.history[dateStr] === 0).length;
+        const penalty = zeroDays * 1000;
+
+        return { ...member, lastMonthPenalty: penalty, zeroDays };
+    });
+
+    // Find the penalty leader (highest penalty)
+    const leader = membersWithPenalty.reduce((worst, current) => {
+        return current.lastMonthPenalty > worst.lastMonthPenalty ? current : worst;
+    });
+
+    return leader.lastMonthPenalty > 0 ? leader : null;
+};

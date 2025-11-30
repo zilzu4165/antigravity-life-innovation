@@ -928,3 +928,36 @@ body {
   color: var(--text-muted);
   font-size: 0.8rem;
 }
+
+/* Penalty Badge */
+.penalty-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.1), rgba(239, 68, 68, 0.05));
+  border: 1px solid rgba(248, 113, 113, 0.3);
+  padding: 10px 14px;
+  border-radius: 12px;
+  margin: 8px 0 16px 0;
+}
+
+.penalty-icon {
+  color: var(--danger);
+  flex-shrink: 0;
+}
+
+.penalty-text {
+  font-size: 0.85rem;
+  color: var(--text-main);
+  line-height: 1.4;
+}
+
+.penalty-text strong {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.penalty-amount {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
