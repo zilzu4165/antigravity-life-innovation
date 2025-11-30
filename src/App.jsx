@@ -33,8 +33,12 @@ function App() {
     const code = params.get('code');
 
     if (code) {
+      // Prevent double processing
       if (loginProcessed.current) return;
       loginProcessed.current = true;
+
+      // Clear URL immediately to prevent subsequent renders/effects from processing the same code
+      window.history.replaceState({}, document.title, window.location.pathname);
 
       const handleLoginCallback = async () => {
         try {
@@ -61,12 +65,10 @@ function App() {
           setUser(userData);
           localStorage.setItem('kakao_user', JSON.stringify(userData));
 
-          // 4. Clean URL
-          window.history.replaceState({}, document.title, window.location.pathname);
         } catch (err) {
           console.error('Login failed', err);
           alert('로그인 처리에 실패했습니다.');
-          window.history.replaceState({}, document.title, window.location.pathname);
+          // URL is already cleared, so no need to replaceState here again unless we want to redirect elsewhere
         }
       };
       handleLoginCallback();
