@@ -300,8 +300,8 @@ function App() {
       <main>
         <Dashboard
           myProgress={currentUser.progress}
-          groupMembers={groupMembers}
-          currentUserId={'me'}
+          groupMembers={userId === GUEST_ID ? groupMembers.filter(m => m.id !== 'me') : groupMembers}
+          currentUserId={userId === GUEST_ID ? null : 'me'}
           currentUserGoals={goals}
         />
 
