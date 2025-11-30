@@ -109,7 +109,7 @@ export default function Leaderboard({ members, currentUserId, currentUserGoals }
 
                             <div className="member-info">
                                 <div className="member-avatar">
-                                    <img src={member.avatar} alt={member.name} />
+                                    <img src={member.avatar?.replace('http:', 'https:')} alt={member.name} />
                                 </div>
                                 <span className="member-name">
                                     {member.name}
