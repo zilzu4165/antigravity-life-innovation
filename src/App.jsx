@@ -46,7 +46,7 @@ function App() {
 
           // 2. Get User Info
           const rawUserData = await getKakaoUserInfo(token);
-          console.log('Kakao User Data:', JSON.stringify(rawUserData, null, 2));
+
 
           // Normalize User Data
           const userData = {
