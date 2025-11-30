@@ -28,4 +28,3 @@ server/.env
 .env.local
 server/dev.db
 server/dev.db-journal
-server/prisma/migrations
