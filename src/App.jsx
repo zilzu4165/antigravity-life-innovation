@@ -8,7 +8,7 @@ import StatsSummary from './components/StatsSummary';
 import Guestbook from './components/Guestbook';
 import GoalHistoryModal from './components/GoalHistoryModal';
 import KakaoLogin from './components/KakaoLogin';
-import { generateMockHistory, calculateStats, calculatePenalty, generateMockGoals } from './utils/dataUtils';
+import { calculateStats, calculatePenalty } from './utils/dataUtils';
 import { getKakaoAuthUrl, getKakaoToken, getKakaoUserInfo, logoutKakao } from './utils/authUtils';
 import { api } from './utils/api';
 
@@ -118,31 +118,15 @@ function App() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedGoals, setSelectedGoals] = useState([]);
 
-  // Generate Mock Data for Group Members (with history)
+  // Group Members (only current user)
   const [groupMembers, setGroupMembers] = useState(() => {
-    const createMember = (id, name, seed) => {
-      const history = generateMockHistory();
-      const stats = calculateStats(history);
-      return {
-        id,
-        name,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${seed}`,
-        progress: history[format(new Date(), 'yyyy-MM-dd')] || 0,
-        history,
-        stats: { ...stats, penalty: calculatePenalty(history) }
-      };
-    };
-
     return [
-      createMember('user1', '김철수', 'Felix'),
-      createMember('user2', '이영희', 'Aneka'),
-      createMember('user3', '박지성', 'Zack'),
       {
         id: 'me',
         name: '나의 하루',
         avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Liliana',
         progress: 0,
-        history: generateMockHistory(60),
+        history: {},
         stats: { weekly: 0, monthly: 0, yearly: 0, penalty: 0 }
       }
     ];
