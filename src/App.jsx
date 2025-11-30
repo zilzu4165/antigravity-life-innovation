@@ -82,12 +82,9 @@ function App() {
   useEffect(() => {
     const loadData = async () => {
       if (userId === GUEST_ID) {
-        // Guest Mode: Use LocalStorage or Mock
-        const savedGoals = localStorage.getItem(`goals_${userId}`);
-        setGoals(savedGoals ? JSON.parse(savedGoals) : []);
-
-        const savedHistory = localStorage.getItem(`goalHistory_${userId}`);
-        setGoalHistory(savedHistory ? JSON.parse(savedHistory) : {});
+        // Guest Mode: Reset to empty
+        setGoals([]);
+        setGoalHistory({});
       } else {
         // User Mode: Fetch from API
         try {
@@ -132,13 +129,7 @@ function App() {
     ];
   });
 
-  // Persist goals & history (Guest Only)
-  useEffect(() => {
-    if (userId === GUEST_ID) {
-      if (goals.length > 0) localStorage.setItem(`goals_${userId}`, JSON.stringify(goals));
-      if (Object.keys(goalHistory).length > 0) localStorage.setItem(`goalHistory_${userId}`, JSON.stringify(goalHistory));
-    }
-  }, [goals, goalHistory, userId]);
+
 
   // Update "My" progress and stats whenever goals change
   useEffect(() => {
