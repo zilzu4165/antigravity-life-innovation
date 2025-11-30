@@ -103,13 +103,34 @@ function App() {
   // Load Data when userId changes
   useEffect(() => {
     const loadData = async () => {
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+
       if (userId === GUEST_ID) {
         // Guest Mode: Use LocalStorage or Mock
         const savedGoals = localStorage.getItem(`goals_${userId}`);
-        setGoals(savedGoals ? JSON.parse(savedGoals) : []);
+        const savedDate = localStorage.getItem(`goals_date_${userId}`);
+
+        // Check if goals are from today
+        if (savedDate === todayStr && savedGoals) {
+          setGoals(JSON.parse(savedGoals));
+        } else {
+          // New day: reset goals and save old ones to history
+          if (savedGoals && savedDate) {
+            const oldGoals = JSON.parse(savedGoals);
+            const savedHistory = localStorage.getItem(`goalHistory_${userId}`);
+            const history = savedHistory ? JSON.parse(savedHistory) : {};
+            history[savedDate] = oldGoals;
+            localStorage.setItem(`goalHistory_${userId}`, JSON.stringify(history));
+            setGoalHistory(history);
+          }
+          setGoals([]);
+          localStorage.setItem(`goals_date_${userId}`, todayStr);
+        }
 
         const savedHistory = localStorage.getItem(`goalHistory_${userId}`);
-        setGoalHistory(savedHistory ? JSON.parse(savedHistory) : {});
+        if (savedHistory) {
+          setGoalHistory(JSON.parse(savedHistory));
+        }
       } else {
         // User Mode: Fetch from API
         try {
@@ -117,7 +138,14 @@ function App() {
             api.getGoals(dbUserId),
             api.getHistory(dbUserId)
           ]);
-          setGoals(fetchedGoals);
+
+          // Check if goals need to be reset (filter only today's goals)
+          const todayGoals = fetchedGoals.filter(goal => {
+            const goalDate = goal.createdAt ? goal.createdAt.split('T')[0] : todayStr;
+            return goalDate === todayStr;
+          });
+
+          setGoals(todayGoals);
           setGoalHistory(fetchedHistory);
         } catch (error) {
           console.error('Failed to load user data', error);
@@ -183,6 +211,10 @@ function App() {
     if (userId !== GUEST_ID && goals.length > 0) {
       // Debounce or just save? For now, save on every change is okay for low traffic
       api.saveHistory(dbUserId, todayStr, goals, myProgress).catch(err => console.error('Failed to save history', err));
+    } else if (userId === GUEST_ID) {
+      // Save goals to localStorage for guest with date
+      localStorage.setItem(`goals_${userId}`, JSON.stringify(goals));
+      localStorage.setItem(`goals_date_${userId}`, todayStr);
     }
 
     // Update local user in groupMembers for immediate feedback

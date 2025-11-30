@@ -46,7 +46,7 @@ export default function Leaderboard({ members, currentUserId, currentUserGoals }
 
         // For real users, fetch from API
         try {
-            const goals = await api.getUserGoals(member.id);
+            const goals = await api.getUserGoals(member.dbId);
             setUserGoals(goals);
             setSelectedUser(member);
             setIsModalOpen(true);
