@@ -393,12 +393,16 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid transparent;
+  /* Ensure fast tap response on mobile */
+  touch-action: manipulation;
 }
 
-.goal-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  transform: translateY(-2px);
-  border-color: var(--glass-border);
+@media (hover: hover) {
+  .goal-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+    border-color: var(--glass-border);
+  }
 }
 
 .goal-item.completed {
