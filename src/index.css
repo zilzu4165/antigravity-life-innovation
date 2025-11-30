@@ -444,18 +444,29 @@ body {
   color: var(--text-muted);
   cursor: pointer;
   padding: 8px;
-  opacity: 0;
+  /* Always visible on touch devices, or handle differently. 
+     For now, let's make it visible by default on mobile or use media query.
+     Actually, best practice for mobile is to always show it or show on swipe.
+     Let's make it opacity 1 by default, and hide it on desktop until hover.
+  */
+  opacity: 1;
   transition: all 0.2s;
   border-radius: 8px;
 }
 
-.goal-item:hover .delete-btn {
-  opacity: 1;
-}
+@media (hover: hover) {
+  .delete-btn {
+    opacity: 0;
+  }
 
-.delete-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--danger);
+  .goal-item:hover .delete-btn {
+    opacity: 1;
+  }
+
+  .delete-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+  }
 }
 
 /* Leaderboard */
