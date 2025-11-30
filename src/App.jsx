@@ -13,8 +13,7 @@ import { getKakaoAuthUrl, getKakaoToken, getKakaoUserInfo, logoutKakao } from '.
 import { api } from './utils/api';
 
 const GUEST_ID = 'guest';
-// Module-level variable to track processed code across remounts
-let processedAuthCode = null;
+const GUEST_ID = 'guest';
 
 function App() {
   // User State
@@ -33,9 +32,23 @@ function App() {
     const code = params.get('code');
 
     if (code) {
-      // Prevent double processing using module-level variable
-      if (processedAuthCode === code) return;
-      processedAuthCode = code;
+      // 1. Check if we are already logged in or processing this code
+      if (user || accessToken) {
+        // Already logged in, just clear URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+      }
+
+      // 2. Check if this specific code was already processed in this session
+      const lastProcessedCode = sessionStorage.getItem('kakao_last_code');
+      if (lastProcessedCode === code) {
+        // Code already used, clear URL and stop
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+      }
+
+      // 3. Mark code as processed immediately
+      sessionStorage.setItem('kakao_last_code', code);
 
       // Clear URL immediately to prevent subsequent renders/effects from processing the same code
       window.history.replaceState({}, document.title, window.location.pathname);
