@@ -13,6 +13,8 @@ import { getKakaoAuthUrl, getKakaoToken, getKakaoUserInfo, logoutKakao } from '.
 import { api } from './utils/api';
 
 const GUEST_ID = 'guest';
+// Module-level variable to track processed code across remounts
+let processedAuthCode = null;
 
 function App() {
   // User State
@@ -25,17 +27,15 @@ function App() {
   const userId = user ? `user_${user.id}` : GUEST_ID;
   const dbUserId = user ? String(user.id) : GUEST_ID; // ID for DB calls
 
-  const loginProcessed = React.useRef(false);
-
   // Handle Kakao Redirect Callback
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
 
     if (code) {
-      // Prevent double processing
-      if (loginProcessed.current) return;
-      loginProcessed.current = true;
+      // Prevent double processing using module-level variable
+      if (processedAuthCode === code) return;
+      processedAuthCode = code;
 
       // Clear URL immediately to prevent subsequent renders/effects from processing the same code
       window.history.replaceState({}, document.title, window.location.pathname);
