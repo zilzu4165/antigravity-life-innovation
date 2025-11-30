@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Send } from 'lucide-react';
+import { MessageSquare, Send, Lock } from 'lucide-react';
 
-export default function Guestbook({ comments, onAddComment, currentUserId }) {
+export default function Guestbook({ comments, onAddComment, currentUserId, isReadOnly }) {
     const [text, setText] = useState('');
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!text.trim()) return;
+        if (!text.trim() || isReadOnly) return;
         onAddComment(text, 'general'); // Default type
         setText('');
     };
@@ -16,20 +16,27 @@ export default function Guestbook({ comments, onAddComment, currentUserId }) {
         <section className="guestbook-section glass-panel" style={{ marginTop: '24px' }}>
             <h2><MessageSquare size={18} /> 방명록</h2>
 
-            <form onSubmit={handleSubmit} className="guestbook-form">
-                <div className="input-wrapper">
-                    <input
-                        type="text"
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
-                        placeholder="멤버들에게 한마디 남겨주세요!"
-                        className="guestbook-input"
-                    />
-                    <button type="submit" className="send-btn">
-                        <Send size={16} />
-                    </button>
+            {!isReadOnly ? (
+                <form onSubmit={handleSubmit} className="guestbook-form">
+                    <div className="input-wrapper">
+                        <input
+                            type="text"
+                            value={text}
+                            onChange={(e) => setText(e.target.value)}
+                            placeholder="멤버들에게 한마디 남겨주세요!"
+                            className="guestbook-input"
+                        />
+                        <button type="submit" className="send-btn">
+                            <Send size={16} />
+                        </button>
+                    </div>
+                </form>
+            ) : (
+                <div className="read-only-notice">
+                    <Lock size={16} />
+                    <span>로그인하면 방명록을 작성할 수 있습니다</span>
                 </div>
-            </form>
+            )}
 
             <ul className="comment-list">
                 <AnimatePresence>

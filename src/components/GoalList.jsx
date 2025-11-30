@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ListChecks, Plus, Check, Trash2 } from 'lucide-react';
+import { ListChecks, Plus, Check, Trash2, Lock } from 'lucide-react';
 
-export default function GoalList({ goals, onAdd, onToggle, onDelete }) {
+export default function GoalList({ goals, onAdd, onToggle, onDelete, isReadOnly }) {
     const [isAdding, setIsAdding] = useState(false);
     const [inputText, setInputText] = useState('');
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!inputText.trim()) return;
+        if (!inputText.trim() || isReadOnly) return;
         onAdd(inputText);
         setInputText('');
         // Keep input open for multiple additions or close it? Let's keep it open for convenience
@@ -18,16 +18,23 @@ export default function GoalList({ goals, onAdd, onToggle, onDelete }) {
         <section className="goal-section glass-panel">
             <div className="section-header">
                 <h2><ListChecks size={20} /> 오늘의 목표</h2>
-                <button
-                    className="neon-btn"
-                    onClick={() => setIsAdding(!isAdding)}
-                >
-                    <Plus size={16} /> 목표 추가
-                </button>
+                {!isReadOnly ? (
+                    <button
+                        className="neon-btn"
+                        onClick={() => setIsAdding(!isAdding)}
+                    >
+                        <Plus size={16} /> 목표 추가
+                    </button>
+                ) : (
+                    <div className="read-only-badge">
+                        <Lock size={14} />
+                        <span>로그인이 필요합니다</span>
+                    </div>
+                )}
             </div>
 
             <AnimatePresence>
-                {isAdding && (
+                {isAdding && !isReadOnly && (
                     <motion.form
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: 'auto' }}
@@ -57,23 +64,26 @@ export default function GoalList({ goals, onAdd, onToggle, onDelete }) {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
-                            className={`goal-item ${goal.completed ? 'completed' : ''}`}
-                            onClick={() => onToggle(goal.id)}
+                            className={`goal-item ${goal.completed ? 'completed' : ''} ${isReadOnly ? 'read-only' : ''}`}
+                            onClick={() => !isReadOnly && onToggle(goal.id)}
+                            style={{ cursor: isReadOnly ? 'default' : 'pointer' }}
                             layout
                         >
                             <div className="check-circle">
                                 {goal.completed && <Check size={14} strokeWidth={3} />}
                             </div>
                             <span className="goal-text">{goal.text}</span>
-                            <button
-                                className="delete-btn"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onDelete(goal.id);
-                                }}
-                            >
-                                <Trash2 size={16} />
-                            </button>
+                            {!isReadOnly && (
+                                <button
+                                    className="delete-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onDelete(goal.id);
+                                    }}
+                                >
+                                    <Trash2 size={16} />
+                                </button>
+                            )}
                         </motion.li>
                     ))}
                 </AnimatePresence>
@@ -84,7 +94,7 @@ export default function GoalList({ goals, onAdd, onToggle, onDelete }) {
                         className="text-muted"
                         style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)' }}
                     >
-                        아직 목표가 없습니다. 새로운 목표를 추가해보세요!
+                        {isReadOnly ? '로그인하면 목표를 추가할 수 있습니다!' : '아직 목표가 없습니다. 새로운 목표를 추가해보세요!'}
                     </motion.p>
                 )}
             </ul>

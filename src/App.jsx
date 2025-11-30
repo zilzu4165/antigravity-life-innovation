@@ -316,12 +316,14 @@ function App() {
           onAdd={addGoal}
           onToggle={toggleGoal}
           onDelete={deleteGoal}
+          isReadOnly={userId === GUEST_ID}
         />
 
         <Guestbook
           comments={comments}
           onAddComment={addComment}
           currentUserId={userId}
+          isReadOnly={userId === GUEST_ID}
         />
       </main>
 
