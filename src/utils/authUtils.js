@@ -12,7 +12,7 @@ export const getKakaoToken = async (code) => {
     data.append('redirect_uri', REDIRECT_URI);
     data.append('code', code);
 
-    const response = await fetch('/oauth/token', {
+    const response = await fetch('https://kauth.kakao.com/oauth/token', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
@@ -30,7 +30,7 @@ export const getKakaoToken = async (code) => {
 };
 
 export const getKakaoUserInfo = async (accessToken) => {
-    const response = await fetch('/v2/user/me', {
+    const response = await fetch('https://kapi.kakao.com/v2/user/me', {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${accessToken}`,
