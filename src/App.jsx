@@ -114,7 +114,7 @@ function App() {
         if (savedDate === todayStr && savedGoals) {
           setGoals(JSON.parse(savedGoals));
         } else {
-          // New day: reset goals and save old ones to history
+          // New day: reset completion status and save old ones to history
           if (savedGoals && savedDate) {
             const oldGoals = JSON.parse(savedGoals);
             const savedHistory = localStorage.getItem(`goalHistory_${userId}`);
@@ -122,8 +122,13 @@ function App() {
             history[savedDate] = oldGoals;
             localStorage.setItem(`goalHistory_${userId}`, JSON.stringify(history));
             setGoalHistory(history);
+
+            // Reset completion status for all goals
+            const resetGoals = oldGoals.map(goal => ({ ...goal, completed: false }));
+            setGoals(resetGoals);
+          } else {
+            setGoals([]);
           }
-          setGoals([]);
           localStorage.setItem(`goals_date_${userId}`, todayStr);
         }
 
@@ -139,13 +144,16 @@ function App() {
             api.getHistory(dbUserId)
           ]);
 
-          // Check if goals need to be reset (filter only today's goals)
-          const todayGoals = fetchedGoals.filter(goal => {
+          // Reset completion status for goals not from today
+          const resetGoals = fetchedGoals.map(goal => {
             const goalDate = goal.createdAt ? goal.createdAt.split('T')[0] : todayStr;
-            return goalDate === todayStr;
+            if (goalDate !== todayStr) {
+              return { ...goal, completed: false };
+            }
+            return goal;
           });
 
-          setGoals(todayGoals);
+          setGoals(resetGoals);
           setGoalHistory(fetchedHistory);
         } catch (error) {
           console.error('Failed to load user data', error);

@@ -36,14 +36,6 @@ export default function Leaderboard({ members, currentUserId, currentUserGoals }
             return;
         }
 
-        // For mock users (user1, user2, user3), show empty
-        if (member.id.startsWith('user')) {
-            setUserGoals([]);
-            setSelectedUser(member);
-            setIsModalOpen(true);
-            return;
-        }
-
         // For real users, fetch from API
         try {
             const goals = await api.getUserGoals(member.dbId);
