@@ -14,6 +14,19 @@ import { api } from './utils/api';
 
 const GUEST_ID = 'guest';
 
+// --- Singleton Code Capture ---
+// Capture the code immediately when the module loads, before React even starts.
+// This guarantees we only see the code once per page load.
+let capturedAuthCode = null;
+if (typeof window !== 'undefined') {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if (code) {
+    capturedAuthCode = code;
+    // Clear the URL immediately to prevent any other logic from seeing it
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+}
 
 function App() {
   // User State
@@ -28,33 +41,19 @@ function App() {
 
   // Handle Kakao Redirect Callback
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-
-    if (code) {
-      // 1. Check if we are already logged in or processing this code
-      if (user || accessToken) {
-        // Already logged in, just clear URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-        return;
-      }
-
-      // 2. Check if this specific code was already processed in this session
-      const lastProcessedCode = sessionStorage.getItem('kakao_last_code');
-      if (lastProcessedCode === code) {
-        // Code already used, clear URL and stop
-        window.history.replaceState({}, document.title, window.location.pathname);
-        return;
-      }
-
-      // 3. Mark code as processed immediately
-      sessionStorage.setItem('kakao_last_code', code);
-
-      // Clear URL immediately to prevent subsequent renders/effects from processing the same code
-      window.history.replaceState({}, document.title, window.location.pathname);
+    // Only process if we captured a code AND we are not already logged in
+    if (capturedAuthCode && !user && !accessToken) {
+      const code = capturedAuthCode;
+      // Nullify immediately so it can't be used again in this session memory
+      capturedAuthCode = null;
 
       const handleLoginCallback = async () => {
         try {
+          // Double check session storage just in case of reload loop
+          const lastProcessed = sessionStorage.getItem('kakao_last_code');
+          if (lastProcessed === code) return;
+          sessionStorage.setItem('kakao_last_code', code);
+
           // 1. Get Token
           const tokenData = await getKakaoToken(code);
           const token = tokenData.access_token;
@@ -63,7 +62,6 @@ function App() {
 
           // 2. Get User Info
           const rawUserData = await getKakaoUserInfo(token);
-
 
           // Normalize User Data
           const userData = {
@@ -81,12 +79,11 @@ function App() {
         } catch (err) {
           console.error('Login failed', err);
           alert('로그인 처리에 실패했습니다.');
-          // URL is already cleared, so no need to replaceState here again unless we want to redirect elsewhere
         }
       };
       handleLoginCallback();
     }
-  }, []);
+  }, [user, accessToken]);
 
   // State initialization
   const [goals, setGoals] = useState([]);
