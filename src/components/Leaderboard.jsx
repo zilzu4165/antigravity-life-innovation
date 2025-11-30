@@ -5,7 +5,7 @@ import { getPeriodRank, calculatePenalty } from '../utils/dataUtils';
 import UserGoalsModal from './UserGoalsModal';
 import { api } from '../utils/api';
 
-export default function Leaderboard({ members, currentUserId }) {
+export default function Leaderboard({ members, currentUserId, currentUserGoals }) {
     const [period, setPeriod] = useState('daily'); // daily, weekly, monthly, yearly
     const [selectedUser, setSelectedUser] = useState(null);
     const [userGoals, setUserGoals] = useState([]);
@@ -28,19 +28,17 @@ export default function Leaderboard({ members, currentUserId }) {
     };
 
     const handleUserClick = async (member) => {
-        // Don't fetch for mock users (user1, user2, user3)
-        if (member.id.startsWith('user') || member.id === 'me') {
-            // For mock users, use today's goals from history
-            const today = new Date().toISOString().split('T')[0];
-            const todayGoals = member.history?.[today] || [];
+        // For "me" (current user), use the actual goals from props
+        if (member.id === 'me') {
+            setUserGoals(currentUserGoals || []);
+            setSelectedUser(member);
+            setIsModalOpen(true);
+            return;
+        }
 
-            // Convert progress number to goals array format
-            if (typeof todayGoals === 'number') {
-                setUserGoals([]);
-            } else {
-                setUserGoals(todayGoals);
-            }
-
+        // For mock users (user1, user2, user3), show empty
+        if (member.id.startsWith('user')) {
+            setUserGoals([]);
             setSelectedUser(member);
             setIsModalOpen(true);
             return;

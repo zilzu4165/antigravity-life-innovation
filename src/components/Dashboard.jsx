@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { PieChart } from 'lucide-react';
 import Leaderboard from './Leaderboard';
 
-export default function Dashboard({ myProgress, groupMembers, currentUserId }) {
+export default function Dashboard({ myProgress, groupMembers, currentUserId, currentUserGoals }) {
     const getMotivationMessage = (percent) => {
         if (percent === 100) return "완벽해! 오늘 하루를 지배했어! 👑";
         if (percent >= 80) return "거의 다 왔어! 조금만 더 힘내! 🔥";
@@ -31,7 +31,11 @@ export default function Dashboard({ myProgress, groupMembers, currentUserId }) {
                 </motion.p>
             </div>
 
-            <Leaderboard members={groupMembers} currentUserId={currentUserId} />
+            <Leaderboard
+                members={groupMembers}
+                currentUserId={currentUserId}
+                currentUserGoals={currentUserGoals}
+            />
         </section>
     );
 }

@@ -318,6 +318,7 @@ function App() {
           myProgress={currentUser.progress}
           groupMembers={groupMembers}
           currentUserId={'me'}
+          currentUserGoals={goals}
         />
 
         <StatsSummary stats={currentUser.stats} />
